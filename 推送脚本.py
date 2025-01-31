@@ -22,9 +22,9 @@ run_command('git commit -m "deepseekai"')
 run_command('git remote remove origin')  # 如果已有旧配置
 
 # 添加正确的远程仓库（SSH 格式）
-#run_command('git remote add git@github.com:feikukuai/xxl.git')
+run_command('git remote add git@github.com:feikukuai/xxl.git')
 # 或使用 HTTPS 格式
-run_command('git remote add origin https://github.com/feikukuai/xxl.git')
+#run_command('git remote add origin https://github.com/feikukuai/xxl.git')
 
 # 推送到远程仓库
 # 注意：这里没有使用 -u 参数，如果需要可以添加
