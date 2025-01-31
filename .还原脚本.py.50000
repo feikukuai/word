@@ -11,5 +11,5 @@ def git_checkout(commit_hash):
         return "Error:", e.stderr
 
 # 用实际的 commit-hash 替换 'commit-hash' 字符串
-commit_hash = '759824a59960743058eb788f8924b8b658e97e59'
+commit_hash = '75a4a834538c5f8467d171140cf287f5d8fb3cd0'
 git_checkout(commit_hash)
