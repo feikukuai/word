@@ -83,12 +83,12 @@ def load_parameters(doc_path):
                 params[current_section][key] = value 
                 
     return params 
-
-def generate_video(script_dir):  # 🆕 修改1：添加参数 
-    # 🆕 修改2：参数文件路径锚定 
+print("读取参数成功")
+def generate_video(script_dir):  
+    
     params = load_parameters(os.path.join(script_dir, "Parameter.docx"))
     
-    # 🆕 修改3：背景路径锚定 
+    
     bg_path = os.path.join(script_dir, params["background"]["background_path"])
     
     if bg_path.lower().endswith(('.png', '.jpg', '.jpeg')):
@@ -125,7 +125,7 @@ def generate_video(script_dir):  # 🆕 修改1：添加参数
     def text_animation(t):
         chars_show = min(int(t * params["text"]["speed"]), len(text_content))
         current_text = text_content[:chars_show]
-        
+        print("文字动画进行中")
         return (TextClip(
             txt=current_text,
             font=params["text"]["font"],
@@ -152,10 +152,10 @@ def generate_video(script_dir):  # 🆕 修改1：添加参数
     if params["output"].get("audio_enabled", True) and hasattr(bg_clip, 'audio'):
         final_clip = final_clip.set_audio(bg_clip.audio)
     
-    # 🆕 修改4：输出路径锚定 
+    
     output_path = os.path.join(script_dir, params["output"]["path"])
     final_clip.write_videofile(
-        output_path, # 使用锚定后的路径 
+        output_path,  
         fps=params["output"]["fps"],
         codec=params["output"]["codec"],
         threads=params["output"]["threads"],
@@ -164,6 +164,7 @@ def generate_video(script_dir):  # 🆕 修改1：添加参数
     )
 
 if __name__ == "__main__":
-    # 🆕 修改5：传递已定义的根目录变量 
+  
     script_dir = os.path.dirname(os.path.abspath(__file__))  # 示例定义（实际由用户定义）
     generate_video(script_dir)
+    print("合成成功")
