@@ -418,9 +418,7 @@ def load_parameters(doc_path):
     
     doc = Document(doc_path)
     params = {"background": {}, "dialog": {}, "text": {}, "output": {}}
-    current_section = 
-    
- None    # 类型转换规则 
+    current_section = None    # 类型转换规则 
     converters = {
         "int": int, "float": float,
         "rgb": lambda x: tuple(map,(int x.split(','))       ),
