@@ -32,9 +32,6 @@ jobs:
       - name: Install vidiopy
         run: pip install moviepy numpy
 
-      - name: Install ai
-        run: pip3 install openai
-        
       - name: Install opencv-python
         run: pip3 install opencv-python
 
