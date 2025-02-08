@@ -406,12 +406,7 @@ remove_empty_paragraphs('output.docx')
 
 
 #读取对应参数
- """
-视频生成器 - 文字动画特效工具 
-依赖库安装：pip install python-docxpy movie opencv-python 
-"""
-from docx import 
- Documentimport re 
+
 import numpy as np 
 from moviepy.editor import *
 from moviepy.config import change_settings 
@@ -420,7 +415,7 @@ from moviepy.config import change_settings
 change_settings({"IMEMAGAGICK_BINARY": r"C:\Program Files\ImageMagick-7.1.1-Q16-HDRI\magick.exe"})
  
 def load_parameters(doc_path):
-    """解析Parameter.docx参数文件"""
+    
     doc = Document(doc_path)
     params = {"background": {}, "dialog": {}, "text": {}, "output": {}}
     current_section = 
@@ -480,9 +475,9 @@ _type = TYPE_MAP.get(current_section, {}).get(key, "str")
                 params[current_section][key] = value 
                 
     return params 
- 
+ #"""主生成函数"""
 def generate_video():
-    """主生成函数"""
+    
     params = load_parameters("Parameter.docx")
     
     # 加载背景    
