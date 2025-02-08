@@ -406,15 +406,18 @@ remove_empty_paragraphs('output.docx')
 
 
 #读取对应参数
-import numpy as np
-from moviepy.editor import *
-from moviepy.config import change_settings
 
+# 其余原有导入保持不变 
+# 其余原有导入保持不变 
+import numpy as np 
+
+from moviepy.editor import *
+from moviepy.config import change_settings 
 
 def load_parameters(doc_path):
     doc = Document(doc_path)
     params = {"background": {}, "dialog": {}, "text": {}, "output": {}}
-    current_section = None  # 类型转换规则
+    current_section = None  # 类型转换规则 
     converters = {
         "int": int, 
         "float": float,
@@ -453,9 +456,9 @@ def load_parameters(doc_path):
     for para in doc.paragraphs:
         line = para.text.strip()
         if not line or line.startswith("#"):
-            continue
+            continue 
         
-        # 识别段落分类
+        # 识别段落分类 
         if line.startswith("[") and line.endswith("]"):
             current_section = line[1:-1].lower()
             continue
@@ -475,14 +478,15 @@ def load_parameters(doc_path):
                 print(f"参数解析失败：{current_section}.{key} = {value}")
                 params[current_section][key] = value 
                 
-    return params
+    return params 
 
-# 主生成函数
-def generate_video():
-    params = load_parameters("Parameter.docx")
+def generate_video(script_dir):  # 🆕 修改1：添加参数 
+    # 🆕 修改2：参数文件路径锚定 
+    params = load_parameters(os.path.join(script_dir, "Parameter.docx"))
     
-    # 加载背景    
-    bg_path = params["background"]["background_path"]
+    # 🆕 修改3：背景路径锚定 
+    bg_path = os.path.join(script_dir, params["background"]["background_path"])
+    
     if bg_path.lower().endswith(('.png', '.jpg', '.jpeg')):
         bg_clip = ImageClip(bg_path).set_duration(
             params["background"].get("default_duration", 10)
@@ -544,9 +548,10 @@ def generate_video():
     if params["output"].get("audio_enabled", True) and hasattr(bg_clip, 'audio'):
         final_clip = final_clip.set_audio(bg_clip.audio)
     
-    # 输出视频 
+    # 🆕 修改4：输出路径锚定 
+    output_path = os.path.join(script_dir, params["output"]["path"])
     final_clip.write_videofile(
-        params["output"]["path"],
+        output_path, # 使用锚定后的路径 
         fps=params["output"]["fps"],
         codec=params["output"]["codec"],
         threads=params["output"]["threads"],
@@ -555,4 +560,6 @@ def generate_video():
     )
 
 if __name__ == "__main__":
-    generate_video()
+    # 🆕 修改5：传递已定义的根目录变量 
+    script_dir = os.path.dirname(os.path.abspath(__file__))  # 示例定义（实际由用户定义）
+    generate_video(script_dir)
