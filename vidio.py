@@ -406,80 +406,83 @@ remove_empty_paragraphs('output.docx')
 
 
 #读取对应参数
-
-import numpy as np 
+import numpy as np
 from moviepy.editor import *
-from moviepy.config import change_settings 
- 
-# 配置GPU加速（可选）
-change_settings({"IMEMAGAGICK_BINARY": r"C:\Program Files\ImageMagick-7.1.1-Q16-HDRI\magick.exe"})
- 
+from moviepy.config import change_settings
+
+
 def load_parameters(doc_path):
-    
     doc = Document(doc_path)
     params = {"background": {}, "dialog": {}, "text": {}, "output": {}}
-    current_section = None    # 类型转换规则 
+    current_section = None  # 类型转换规则
     converters = {
-        "int": int, "float": float,
-        "rgb": lambda x: tuple(map,(int x.split(','))       ),
- "bool": lambda x:.lower x() == "true"
+        "int": int, 
+        "float": float,
+        "rgb": lambda x: tuple(map(int, x.split(','))),
+        "bool": lambda x: x.lower() == "true"
     }
     
     # 参数类型映射表 
     TYPE_MAP = {
         "background": {
             "default_duration": "float",
-            "":resolution "optional"
+            "resolution": "optional"
         },
         "dialog": {
-            "width_ratio": "float", "height_ratio": "float",
-            "position_y": "float", "bg_alpha": "float",
-            "border_size": "int", "border_":radius "int"
+            "width_ratio": "float", 
+            "height_ratio": "float",
+            "position_y": "float", 
+            "bg_alpha": "float",
+            "border_size": "int", 
+            "border_radius": "int"
         },
         "text": {
-            "size": "int", "speed": "int",
-            "padding_x": "int", "padding_y": "int",
+            "size": "int", 
+            "speed": "int",
+            "padding_x": "int", 
+            "padding_y": "int",
             "line_spacing": "float"
         },
         "output": {
-            "fps": "int", "threads": "int",
+            "fps": "int", 
+            "threads": "int",
             "audio_enabled": "bool"
         }
     }
- 
- for para    in doc.paragraphs:
+
+    for para in doc.paragraphs:
         line = para.text.strip()
         if not line or line.startswith("#"):
-            continue 
+            continue
         
- #        识别段落分类 
-        if line.startswith("[") and.end lineswith("]"):
+        # 识别段落分类
+        if line.startswith("[") and line.endswith("]"):
             current_section = line[1:-1].lower()
-            continue 
+            continue
             
         if "=" in line and current_section:
-            key, value = map(str.strip, line.split("=", 1            param))
-_type = TYPE_MAP.get(current_section, {}).get(key, "str")
+            key, value = map(str.strip, line.split("=", 1))
+            param_type = TYPE_MAP.get(current_section, {}).get(key, "str")
             
             try:
                 if param_type in converters:
-                    params[current_s][ectionkey] = converters[param_type](value)
+                    params[current_section][key] = converters[param_type](value)
                 elif "_color" in key:
-                    params[currentection_s][key] = converters["rgb"](value)
+                    params[current_section][key] = converters["rgb"](value)
                 else:
                     params[current_section][key] = value 
             except:
                 print(f"参数解析失败：{current_section}.{key} = {value}")
                 params[current_section][key] = value 
                 
-    return params 
- #"""主生成函数"""
+    return params
+
+# 主生成函数
 def generate_video():
-    
     params = load_parameters("Parameter.docx")
     
     # 加载背景    
- bg_path = params["background"]["background_path"]
+    bg_path = params["background"]["background_path"]
     if bg_path.lower().endswith(('.png', '.jpg', '.jpeg')):
         bg_clip = ImageClip(bg_path).set_duration(
             params["background"].get("default_duration", 10)
@@ -489,22 +492,22 @@ def generate_video():
     
     # 分辨率处理 
     if "resolution" in params["background"]:
-        w, h = map(int,[" paramsbackground"]["resolution"].split('x'))
-        bg_cl =ip bg_clip.resize((w, h))
+        w, h = map(int, params["background"]["resolution"].split('x'))
+        bg_clip = bg_clip.resize((w, h))
     
     # 创建动态对话框 
     dialog_w = int(bg_clip.w * params["dialog"]["width_ratio"])
     dialog_h = int(bg_clip.h * params["dialog"]["height_ratio"])
     
     def create_dialog(t):
-        return (ColorClip(size=(dialog_w, dialog_h), color=params["dialogbg"]["_color"])
+        return (ColorClip(size=(dialog_w, dialog_h), color=params["dialog"]["bg_color"])
                 .set_opacity(params["dialog"]["bg_alpha"])
-                .set_position(('center', bg_clip.h params *["dialog"]["position"]_y))
+                .set_position(('center', bg_clip.h * params["dialog"]["position_y"]))
                 .margin(
                     top=params["text"]["padding_y"], 
                     bottom=params["text"]["padding_y"],
                     left=params["text"]["padding_x"],
- right                   =params["text"]["padding_x"],
+                    right=params["text"]["padding_x"],
                     color=params["dialog"]["border_color"]
                 )
                 .set_duration(bg_clip.duration))
@@ -516,14 +519,14 @@ def generate_video():
         current_text = text_content[:chars_show]
         
         return (TextClip(
-           = txtcurrent,
-_text            font=params["text"]["font"],
+            txt=current_text,
+            font=params["text"]["font"],
             fontsize=params["text"]["size"],
-            color=paramstext"]["["color"],
- align           ='west',
+            color=params["text"]["color"],
+            align='west',
             size=(dialog_w - 2*params["text"]["padding_x"], None),
-            method='caption           ',
- print_cmd=True 
+            method='caption',
+            print_cmd=True 
         )
         .set_position((
             params["text"]["padding_x"], 
@@ -533,7 +536,7 @@ _text            font=params["text"]["font"],
     # 合成最终视频 
     final_clip = CompositeVideoClip([
         bg_clip,
- create       _dialog(0).crossadefin(0.5),
+        create_dialog(0).crossfadein(0.5),
         text_animation(0).set_start(0.5)
     ], use_bgclip=True).set_duration(bg_clip.duration)
     
@@ -545,11 +548,11 @@ _text            font=params["text"]["font"],
     final_clip.write_videofile(
         params["output"]["path"],
         fps=params["output"]["fps"],
-       c code=params["output"]["codec"],
-       = threadsparams["output"]["threads"],
+        codec=params["output"]["codec"],
+        threads=params["output"]["threads"],
         preset='slow',
-        audio_codec='aac' if params["output"]["_enaudioabled"] else None 
+        audio_codec='aac' if params["output"]["audio_enabled"] else None 
     )
- 
+
 if __name__ == "__main__":
     generate_video()
