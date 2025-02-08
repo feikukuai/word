@@ -1,22 +1,9 @@
 from docx import Document
-# 获取当前脚本所在目录的绝对路径
 import os
-
-# 获取Python解释器（或exe）所在目录
-exe_dir = os.path.dirname(sys.executable)
-print(exe_dir)
-script_dir = os.path.dirname(sys.executable)
-print(script_dir)
-# 改变当前工作目录到exe文件所在的目录
-os.chdir(exe_dir)
-source_dir = os.path.dirname(sys.executable)
-print(f"正确工作路径 directory: {os.getcwd()}")
-# 需要检查和创建的文件列表
-
-import numpy as np 
-
+import numpy as np
 from moviepy.editor import *
-from moviepy.config import change_settings 
+from moviepy.config import change_settings
+from PIL import Image, ImageDraw, ImageFont
 
 def load_parameters(doc_path):
     doc = Document(doc_path)
@@ -84,10 +71,9 @@ def load_parameters(doc_path):
                 
     return params 
 print("读取参数成功")
+
 def generate_video(script_dir):  
-    
     params = load_parameters(os.path.join(script_dir, "Parameter.docx"))
-    
     
     bg_path = os.path.join(script_dir, params["background"]["background_path"])
     
@@ -126,20 +112,17 @@ def generate_video(script_dir):
         chars_show = min(int(t * params["text"]["speed"]), len(text_content))
         current_text = text_content[:chars_show]
         print("文字动画进行中")
-        return (TextClip(
-            txt=current_text,
-            font=params["text"]["font"],
-            fontsize=params["text"]["size"],
-            color=params["text"]["color"],
-            align='west',
-            size=(dialog_w - 2*params["text"]["padding_x"], None),
-            method='caption',
-            print_cmd=True 
-        )
-        .set_position((
+        
+        # 使用 Pillow 创建文本图像
+        img = Image.new('RGBA', (dialog_w - 2*params["text"]["padding_x"], dialog_h - 2*params["text"]["padding_y"]), (0, 0, 0, 0))
+        draw = ImageDraw.Draw(img)
+        font = ImageFont.truetype(params["text"]["font"], params["text"]["size"])
+        draw.text((params["text"]["padding_x"], params["text"]["padding_y"]), current_text, font=font, fill=params["text"]["color"])
+        img_clip = ImageClip(np.array(img)).set_position((
             params["text"]["padding_x"], 
             params["text"]["padding_y"]
-        )))
+        ))
+        return img_clip.set_duration(bg_clip.duration)
     
     # 合成最终视频 
     final_clip = CompositeVideoClip([
@@ -152,7 +135,6 @@ def generate_video(script_dir):
     if params["output"].get("audio_enabled", True) and hasattr(bg_clip, 'audio'):
         final_clip = final_clip.set_audio(bg_clip.audio)
     
-    
     output_path = os.path.join(script_dir, params["output"]["path"])
     final_clip.write_videofile(
         output_path,  
@@ -164,7 +146,6 @@ def generate_video(script_dir):
     )
 
 if __name__ == "__main__":
-  
     script_dir = os.path.dirname(os.path.abspath(__file__))  # 示例定义（实际由用户定义）
     generate_video(script_dir)
-    print("合成成功")
+    print("合成视频成功")

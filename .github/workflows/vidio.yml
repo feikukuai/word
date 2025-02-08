@@ -31,6 +31,11 @@ jobs:
         
       - name: Install vidiopy
         run: pip install moviepy numpy
+        
+      - name: Install pil
+        run: pip install Pillow
+        
+        
 
       - name: Install opencv-python
         run: pip3 install opencv-python
